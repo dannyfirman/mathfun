@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math&Fun</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(to bottom, #fceaff, #e6f0ff);
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      user-select: none;
+    }
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .show {
+      display: flex;
+    }
+    .title {
+      font-size: 3rem;
+      color: #ff6b6b;
+    }
+    .tap-start {
+      margin-top: 20px;
+      font-size: 1.5rem;
+      color: #6a4c93;
+    }
+    .question {
+      font-size: 2.5rem;
+      margin: 20px;
+      color: #f2547d;
+    }
+    .answer {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      border: 4px solid #fcb0b3;
+      border-radius: 15px;
+      background: #ffffff;
+      min-width: 100px;
+      min-height: 40px;
+      color: #e63946;
+    }
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 80px);
+      grid-gap: 15px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      background-color: #90e0ef;
+      border: none;
+      font-size: 1.5rem;
+      padding: 15px;
+      border-radius: 20px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.1s;
+    }
+    .btn:active {
+      transform: scale(0.95);
+    }
+    .btn.ok {
+      background-color: #b9fbc0;
+    }
+    .btn.backspace {
+      background-color: #ffadad;
+    }
+    .btn.nav {
+      background-color: #ffc8dd;
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+    }
+    .top-buttons {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+    .result-msg {
+      font-size: 2rem;
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+  <div id="titleScreen" class="screen show">
+    <div>
+      <div class="title">Math&amp;Fun</div>
+      <div class="tap-start">Tap to Start</div>
+    </div>
+  </div>
+
+  <div id="quizScreen" class="screen">
+    <div class="top-buttons">
+      <button class="btn nav" onclick="goToTitle()">←</button>
+      <button class="btn nav" onclick="generateQuestion()">⟳</button>
+    </div>
+    <div class="question" id="questionText"></div>
+    <div class="answer" id="userAnswer"></div>
+    <div class="numpad">
+      <button class="btn" onclick="appendNumber(1)">1</button>
+      <button class="btn" onclick="appendNumber(2)">2</button>
+      <button class="btn" onclick="appendNumber(3)">3</button>
+      <button class="btn" onclick="appendNumber(4)">4</button>
+      <button class="btn" onclick="appendNumber(5)">5</button>
+      <button class="btn" onclick="appendNumber(6)">6</button>
+      <button class="btn" onclick="appendNumber(7)">7</button>
+      <button class="btn" onclick="appendNumber(8)">8</button>
+      <button class="btn" onclick="appendNumber(9)">9</button>
+      <button class="btn backspace" onclick="backspace()">⌫</button>
+      <button class="btn" onclick="appendNumber(0)">0</button>
+      <button class="btn ok" onclick="submitAnswer()">OK</button>
+    </div>
+  </div>
+
+  <div id="resultScreen" class="screen">
+    <div class="result-msg" id="resultMessage"></div>
+    <div class="tap-start">Tap to continue</div>
+  </div>
+
+  <script>
+    const titleScreen = document.getElementById('titleScreen');
+    const quizScreen = document.getElementById('quizScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const questionText = document.getElementById('questionText');
+    const userAnswer = document.getElementById('userAnswer');
+    const resultMessage = document.getElementById('resultMessage');
+
+    const resultMessages = ['Awesome!', 'Great Job!', 'You Rock!', 'Well Done!'];
+    let correctAnswer = 0;
+
+    function showScreen(screen) {
+      [titleScreen, quizScreen, resultScreen].forEach(s => s.classList.remove('show'));
+      screen.classList.add('show');
+    }
+
+    titleScreen.addEventListener('click', () => {
+      showScreen(quizScreen);
+      generateQuestion();
+    });
+
+    resultScreen.addEventListener('click', () => {
+      showScreen(quizScreen);
+      generateQuestion();
+    });
+
+    function goToTitle() {
+      showScreen(titleScreen);
+    }
+
+    function generateQuestion() {
+      let isAddition = Math.random() < 0.8;
+      let a = Math.floor(Math.random() * 20) + 1;
+      let b = Math.floor(Math.random() * 20) + 1;
+      if (isAddition) {
+        while (a + b > 20) {
+          a = Math.floor(Math.random() * 20) + 1;
+          b = Math.floor(Math.random() * 20) + 1;
+        }
+        correctAnswer = a + b;
+        questionText.textContent = `${a} + ${b} = ?`;
+      } else {
+        while (a - b < 0) {
+          a = Math.floor(Math.random() * 20) + 1;
+          b = Math.floor(Math.random() * 20) + 1;
+        }
+        correctAnswer = a - b;
+        questionText.textContent = `${a} - ${b} = ?`;
+      }
+      userAnswer.textContent = '';
+    }
+
+    function appendNumber(num) {
+      userAnswer.textContent += num;
+    }
+
+    function backspace() {
+      userAnswer.textContent = userAnswer.textContent.slice(0, -1);
+    }
+
+    function submitAnswer() {
+      const answer = parseInt(userAnswer.textContent);
+      if (answer === correctAnswer) {
+        resultMessage.textContent = resultMessages[Math.floor(Math.random() * resultMessages.length)];
+        showScreen(resultScreen);
+      } else {
+        userAnswer.textContent = '';
+      }
+    }
+  </script>
+</body>
+</html>
