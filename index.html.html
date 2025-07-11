@@ -41,7 +41,7 @@
     }
     .answer {
       font-size: 2rem;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       padding: 10px 20px;
       border: 4px solid #fcb0b3;
       border-radius: 15px;
@@ -49,12 +49,48 @@
       min-width: 100px;
       min-height: 40px;
       color: #e63946;
+      position: relative;
+    }
+    .exclamation {
+      position: absolute;
+      top: 50%;
+      left: calc(100% + 10px);
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      color: red;
+      opacity: 0;
+      animation: fadeInOut 2s ease forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .numpad-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .numpad-feedback {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background-color: rgba(255, 0, 0, 0.1);
+      animation: pulse 0.5s ease-out;
+      z-index: -1;
+    }
+    @keyframes pulse {
+      0% { transform: translateX(-50%) scale(1); opacity: 1; }
+      100% { transform: translateX(-50%) scale(1.8); opacity: 0; }
     }
     .numpad {
       display: grid;
       grid-template-columns: repeat(3, 80px);
       grid-gap: 15px;
-      margin-bottom: 20px;
     }
     .btn {
       background-color: #90e0ef;
@@ -101,9 +137,11 @@
   </style>
 </head>
 <body>
+  <audio id="buzzSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_d0f8b16e26.mp3"></audio>
+
   <div id="titleScreen" class="screen show">
     <div>
-      <div class="title">Math&amp;Fun</div>
+      <div class="title">Math&Fun</div>
       <div class="tap-start">Tap to Start</div>
     </div>
   </div>
@@ -115,19 +153,22 @@
     </div>
     <div class="question" id="questionText"></div>
     <div class="answer" id="userAnswer"></div>
-    <div class="numpad">
-      <button class="btn" onclick="appendNumber(1)">1</button>
-      <button class="btn" onclick="appendNumber(2)">2</button>
-      <button class="btn" onclick="appendNumber(3)">3</button>
-      <button class="btn" onclick="appendNumber(4)">4</button>
-      <button class="btn" onclick="appendNumber(5)">5</button>
-      <button class="btn" onclick="appendNumber(6)">6</button>
-      <button class="btn" onclick="appendNumber(7)">7</button>
-      <button class="btn" onclick="appendNumber(8)">8</button>
-      <button class="btn" onclick="appendNumber(9)">9</button>
-      <button class="btn backspace" onclick="backspace()">⌫</button>
-      <button class="btn" onclick="appendNumber(0)">0</button>
-      <button class="btn ok" onclick="submitAnswer()">OK</button>
+    <div class="numpad-wrapper">
+      <div class="numpad-feedback" id="numpadFeedback" style="display: none;"></div>
+      <div class="numpad">
+        <button class="btn" onclick="appendNumber(1)">1</button>
+        <button class="btn" onclick="appendNumber(2)">2</button>
+        <button class="btn" onclick="appendNumber(3)">3</button>
+        <button class="btn" onclick="appendNumber(4)">4</button>
+        <button class="btn" onclick="appendNumber(5)">5</button>
+        <button class="btn" onclick="appendNumber(6)">6</button>
+        <button class="btn" onclick="appendNumber(7)">7</button>
+        <button class="btn" onclick="appendNumber(8)">8</button>
+        <button class="btn" onclick="appendNumber(9)">9</button>
+        <button class="btn backspace" onclick="backspace()">⌫</button>
+        <button class="btn" onclick="appendNumber(0)">0</button>
+        <button class="btn ok" onclick="submitAnswer()">OK</button>
+      </div>
     </div>
   </div>
 
@@ -143,6 +184,8 @@
     const questionText = document.getElementById('questionText');
     const userAnswer = document.getElementById('userAnswer');
     const resultMessage = document.getElementById('resultMessage');
+    const numpadFeedback = document.getElementById('numpadFeedback');
+    const buzzSound = document.getElementById('buzzSound');
 
     const resultMessages = ['Awesome!', 'Great Job!', 'You Rock!', 'Well Done!'];
     let correctAnswer = 0;
@@ -168,20 +211,20 @@
 
     function generateQuestion() {
       let isAddition = Math.random() < 0.8;
-      let a = Math.floor(Math.random() * 20) + 1;
-      let b = Math.floor(Math.random() * 20) + 1;
+      let a, b;
+
       if (isAddition) {
-        while (a + b > 20) {
-          a = Math.floor(Math.random() * 20) + 1;
-          b = Math.floor(Math.random() * 20) + 1;
-        }
+        do {
+          a = Math.floor(Math.random() * 10) + 1;
+          b = Math.floor(Math.random() * 10) + 1;
+        } while (a + b > 10);
         correctAnswer = a + b;
         questionText.textContent = `${a} + ${b} = ?`;
       } else {
-        while (a - b < 0) {
-          a = Math.floor(Math.random() * 20) + 1;
-          b = Math.floor(Math.random() * 20) + 1;
-        }
+        do {
+          a = Math.floor(Math.random() * 10) + 1;
+          b = Math.floor(Math.random() * 10) + 1;
+        } while (a - b < 0 || a - b > 10);
         correctAnswer = a - b;
         questionText.textContent = `${a} - ${b} = ?`;
       }
@@ -196,13 +239,39 @@
       userAnswer.textContent = userAnswer.textContent.slice(0, -1);
     }
 
+    function showExclamation() {
+      const mark = document.createElement('span');
+      mark.textContent = '!';
+      mark.className = 'exclamation';
+      userAnswer.appendChild(mark);
+      setTimeout(() => {
+        mark.remove();
+      }, 2000);
+    }
+
+    function showPulse() {
+      numpadFeedback.style.display = 'block';
+      numpadFeedback.classList.remove('numpad-feedback');
+      void numpadFeedback.offsetWidth;
+      numpadFeedback.classList.add('numpad-feedback');
+      setTimeout(() => {
+        numpadFeedback.style.display = 'none';
+      }, 500);
+    }
+
     function submitAnswer() {
       const answer = parseInt(userAnswer.textContent);
       if (answer === correctAnswer) {
         resultMessage.textContent = resultMessages[Math.floor(Math.random() * resultMessages.length)];
         showScreen(resultScreen);
       } else {
-        userAnswer.textContent = '';
+        buzzSound.currentTime = 0;
+        buzzSound.play();
+        showPulse();
+        setTimeout(() => {
+          userAnswer.textContent = '';
+        }, 1000);
+        showExclamation();
       }
     }
   </script>
